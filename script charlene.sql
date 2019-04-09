@@ -34,7 +34,45 @@ EXCEPTION WHEN others THEN
 END;
 $$ LANGUAGE 'plpgsql';
 
+--cricao do gatilho para executar o calculo a cada insert e update
+--insert
+CREATE OR REPLACE FUNCTION trigger_somar_frente_insert_update()
+	RETURNS trigger AS
+$$
+BEGIN
+	PERFORM somar_frente_casas(NEW.quadra);
+	RETURN NEW;
+END;
+$$ language plpgsql stable;
+--delete
+CREATE OR REPLACE FUNCTION trigger_somar_frente_delete()
+	RETURNS trigger AS
+$$
+BEGIN
+	PERFORM somar_frente_casas(OLD.quadra);
+	RETURN NEW;
+END;
+$$ language plpgsql stable;
 
+
+--associa a trigger com a tabela das fachadas
+--insert
+CREATE TRIGGER trigger_caruaru_poligono_insert_update
+	AFTER INSERT OR UPDATE OF face
+	ON caruaru_poligono
+	FOR EACH ROW
+	EXECUTE PROCEDURE trigger_somar_frente_insert_update();
+--delete
+CREATE TRIGGER trigger_caruaru_poligono_delete
+	AFTER DELETE
+	ON caruaru_poligono
+	FOR EACH ROW
+	EXECUTE PROCEDURE trigger_somar_frente_delete();
+
+------------------------ // -----------------------------
+
+--DROP TRIGGER trigger_caruaru_poligono_insert_update ON caruaru_poligono
+--DROP TRIGGER trigger_caruaru_poligono_delete ON caruaru_poligono
 
 --aqui é para esconder as colunas que voce queira.
 --primeiro voce vai escolher o nome que quer. como se fosse uma tabela. agora esta noma_como_se_fosse_tabela
@@ -45,8 +83,6 @@ CREATE VIEW noma_como_se_fosse_tabela AS
 
 --o nome que voce de vai ser a nova tabela que voce vai usar. olha o ex
 select * from noma_como_se_fosse_tabela;
-
-
 
 --para testar se esta tudo certo é so rodar a consulta
 --tem que informar qual a quadra que se deseja fazer a soma
