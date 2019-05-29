@@ -15,7 +15,8 @@ DECLARE
     poligono_linha "LOTES"%ROWTYPE;
     v_cursor CURSOR FOR (
         SELECT * FROM "LOTES" 
-        WHERE lote_ = v_lote) FOR UPDATE;
+        WHERE lote_ = v_lote
+    	ORDER BY id ASC) FOR UPDATE;
 BEGIN
 OPEN v_cursor;
 LOOP
